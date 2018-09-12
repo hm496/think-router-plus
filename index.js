@@ -82,7 +82,7 @@ const defaultRouter = (opts) => (router, app) => {
   }
 };
 
-function RouterPlus (options, app) {
+function ThinkRouterPlus (options, app) {
   const opts = Object.assign({}, defaultOptions, options);
   const router = new RouterPlusClass();
   app.routers.forEach((fn) => {
@@ -102,4 +102,4 @@ function RouterPlus (options, app) {
 }
 
 exports.nextController = nextController;
-exports.RouterPlus = RouterPlus;
+exports.router = ThinkRouterPlus;
