@@ -1,24 +1,24 @@
 {
-	"name": "think-router-plus",
-	"version": "1.0.1",
-	"main": "index.js",
-	"type": "index.d.ts",
-	"description": "egg-router-plus for ThinkJS",
-	"scripts": {},
+  "name": "think-router-plus",
+  "version": "1.0.2",
+  "main": "index.js",
+  "type": "index.d.ts",
+  "description": "egg-router-plus for ThinkJS",
+  "scripts": {},
   "dependencies": {
-		"debug": "^2.6.3",
+    "@types/koa-router": "^7.0.31",
+    "debug": "^2.6.3",
     "is-type-of": "^1.2.0",
     "koa-router": "^7.4.0"
   },
   "devDependencies": {
-    "@types/koa-router": "^7.0.31"
   },
   "engines": {
     "node": ">=8.0.0"
   },
-	"bugs": {
-		"url": "https://github.com/hm496/think-router-plus/issue"
-	},
+  "bugs": {
+    "url": "https://github.com/hm496/think-router-plus/issue"
+  },
   "homepage": "https://github.com/hm496/think-router-plus#readme",
   "keywords": [
     "koa-router"
