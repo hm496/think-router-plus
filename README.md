@@ -17,6 +17,8 @@ export = [
         enableDefaultRouter: true,  // enable default thinkjs router
         optimizeHomepageRouter: true, // optimize homepage Router
         denyModules: [], // deny Modules
+        router: {}, // new Router(options.router)
+        allowed: {}, // router.allowedMethods(options.allowed)
     }
   },
   'controller'

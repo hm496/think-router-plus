@@ -1,6 +1,6 @@
 {
   "name": "think-router-plus",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "main": "index.js",
   "type": "index.d.ts",
   "description": "egg-router-plus for ThinkJS",
@@ -8,6 +8,7 @@
   "dependencies": {
     "@types/koa-router": "^7.0.31",
     "debug": "^2.6.3",
+    "methods": "^1.0.1",
     "is-type-of": "^1.2.0",
     "koa-router": "^7.4.0"
   },

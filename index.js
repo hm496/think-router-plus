@@ -2,6 +2,8 @@
 const compose = require("koa-compose");
 const RouterPlusClass = require("./router");
 const debug = require('debug')('think-router-plus');
+const methods = require('methods');
+
 const defaultOptions = {
   defaultModule: 'home',
   defaultController: 'index',
@@ -36,68 +38,76 @@ function parseController (pathname, controllersALL) {
   return { controller, pathname };
 }
 
-const defaultRouter = (opts) => (router, app) => {
-  if (opts.enableDefaultRouter) {
-    router.all('*', (ctx, next) => {
-      const isMultiModule = app.modules.length;
-      if ((isMultiModule && !ctx.module) || !ctx.controller || !ctx.action) {
-        let pathname = ctx.path || "";
-        if (opts.optimizeHomepageRouter && (pathname === '' || pathname === '/')) {
-          const module = isMultiModule ? opts.defaultModule : '';
-          const controllerStr = opts.defaultController;
-          const actionStr = opts.defaultAction;
-          return nextController(controllerStr, actionStr, module)(ctx, next);
-        }
-        pathname = pathname.replace(/^\/|\/$/g, '').replace(/\/{2,}/g, '/');
-        let m = '';
-        let controllers = app.controllers;
-        if (app.modules.length) {
-          const pos = pathname.indexOf('/');
-          m = pos === -1 ? pathname : pathname.slice(0, pos);
-          if (app.modules.indexOf(m) > -1 && m !== 'common' && opts.denyModules.indexOf(m) === -1) {
-            pathname = pos === -1 ? '' : pathname.slice(pos + 1);
-          }
-          else {
-            m = opts.defaultModule;
-          }
-          controllers = controllers[m] || {};
-        }
-        let controller = '';
-        const parseControllerResult = parseController(pathname, controllers);
-        controller = parseControllerResult.controller;
-        pathname = parseControllerResult.pathname;
-        let action = '';
-        const pathnameArr = pathname.split('/');
-        if (controller) {
-          action = pathnameArr[0];
-        }
-        else {
-          controller = pathnameArr[0];
-          action = pathnameArr[1];
-        }
-        return nextController(controller, action, m)(ctx, next);
+const defaultRouter = (ctx, next, app, opts) => {
+  const isMultiModule = app.modules.length;
+  if ((isMultiModule && !ctx.module) || !ctx.controller || !ctx.action) {
+    let pathname = ctx.path || "";
+    if (opts.optimizeHomepageRouter && (pathname === '' || pathname === '/')) {
+      const module = isMultiModule ? opts.defaultModule : '';
+      const controllerStr = opts.defaultController;
+      const actionStr = opts.defaultAction;
+      return nextController(controllerStr, actionStr, module)(ctx, next);
+    }
+    pathname = pathname.replace(/^\/|\/$/g, '').replace(/\/{2,}/g, '/');
+    let m = '';
+    let controllers = app.controllers;
+    if (app.modules.length) {
+      const pos = pathname.indexOf('/');
+      m = pos === -1 ? pathname : pathname.slice(0, pos);
+      if (app.modules.indexOf(m) > -1 && m !== 'common' && opts.denyModules.indexOf(m) === -1) {
+        pathname = pos === -1 ? '' : pathname.slice(pos + 1);
       }
-      return next();
-    });
+      else {
+        m = opts.defaultModule;
+      }
+      controllers = controllers[m] || {};
+    }
+    let controller = '';
+    const parseControllerResult = parseController(pathname, controllers);
+    controller = parseControllerResult.controller;
+    pathname = parseControllerResult.pathname;
+    let action = '';
+    const pathnameArr = pathname.split('/');
+    if (controller) {
+      action = pathnameArr[0];
+    }
+    else {
+      controller = pathnameArr[0];
+      action = pathnameArr[1];
+    }
+    return nextController(controller, action, m)(ctx, next);
   }
-};
+  return next();
+}
 
 function ThinkRouterPlus (options, app) {
   const opts = Object.assign({}, defaultOptions, options);
-  const router = new RouterPlusClass();
+  const routerOpts = Object.assign({}, opts.router);
+  const allowedOpts = Object.assign({}, opts.allowed);
+  const router = new RouterPlusClass(routerOpts);
   app.routers.forEach((fn) => {
     fn(router, app);
   });
-  defaultRouter(opts)(router, app);
+
+  if (opts.enableDefaultRouter) {
+    router.all('*', (ctx, next) => {
+      return defaultRouter(ctx, next, app, opts);
+    });
+  }
+
   return (ctx, next) => {
-    return compose([
-      router.routes(),
-      router.allowedMethods(),
-      (ctx2, next2) => {
-        ctx2.param(ctx2.params);
-        return next2();
-      }
-    ])(ctx, next);
+    if (ctx.method && methods.includes(ctx.method.toLowerCase())) {
+      return compose([
+        router.routes(),
+        router.allowedMethods(allowedOpts),
+        (ctx2, next2) => {
+          ctx2.param(ctx2.params);
+          return next2();
+        }
+      ])(ctx, next);
+    } else {
+      return defaultRouter(ctx, next, app, opts);
+    }
   };
 }
 
